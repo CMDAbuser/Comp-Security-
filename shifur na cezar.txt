@@ -1,0 +1,174 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define LETTER_COUNT 26
+#define MAXN 1000
+
+char* caesar_encrypt(char* cypher, int key) {
+    int length = strlen(cypher);
+    char* str = (char*) malloc(sizeof(char) * (length + 1));
+
+    int i = 0;
+    while(cypher[i] != '\0') {
+        if(cypher[i] >= 'A' && cypher[i] <= 'Z') {
+            str[i] = ((cypher[i] - 'A' + key + 26) % 26) + 'A';
+        }
+        else if(cypher[i] >= 'a' && cypher[i] <= 'z') {
+            str[i] = ((cypher[i] - 'a' + key + 26) % 26) + 'a';
+        }
+        else if(cypher[i] >= '0' && cypher[i] <= '9') {
+            str[i] = ((cypher[i] - '0' + key + 10) % 10) + '0';
+        }
+        else {
+            str[i] = cypher[i];
+        }
+        i++;
+    }
+    str[i] = '\0';
+
+    return str;
+}
+
+char* caesar_decrypt(char* cypher, int key) {
+    int length = strlen(cypher);
+    char* str = (char*) malloc(sizeof(char) * (length + 1));
+
+    int i = 0;
+    while(cypher[i] != '\0') {
+        if(cypher[i] >= 'A' && cypher[i] <= 'Z') {
+            str[i] = ((cypher[i] - 'A' - key + 26) % 26) + 'A';
+        }
+        else if(cypher[i] >= 'a' && cypher[i] <= 'z') {
+            str[i] = ((cypher[i] - 'a' - key + 26) % 26) + 'a';
+        }
+        else if(cypher[i] >= '0' && cypher[i] <= '9') {
+            str[i] = ((cypher[i] - '0' - key + 10) % 10) + '0';
+        }
+        else {
+            str[i] = cypher[i];
+        }
+        i++;
+    }
+    str[i] = '\0';
+
+    return str;
+}
+
+char* read_cypher(char* filename) {
+    FILE *file;
+    file = fopen(filename, "r");
+
+    if(file == NULL) {
+        printf("Error opening the file.");
+        return NULL;
+    }
+
+    char* cypher = (char*) malloc(MAXN * sizeof(char));
+    if(fgets(cypher, MAXN, file) == NULL) {
+        printf("Error reading from file.");
+        return NULL;
+    }
+
+    fclose(file);
+
+    return cypher;
+}
+
+void write_cypher(char* filename) {
+    FILE* file = fopen(filename, "w");
+
+    if(file == NULL) {
+        printf("Error opening the file.");
+        return;
+    }
+
+    char sentence[MAXN];
+    printf("Enter sentence: \n");
+    fgets(sentence, sizeof(sentence), stdin);
+
+    fprintf(file, "%s", sentence);
+
+    fclose(file);
+}
+
+int get_max_index(int* counts) {
+    int max_index = 0;
+    for(int i = 0; i < LETTER_COUNT; i++) {
+        if(counts[i] > counts[max_index]) {
+            max_index = i;
+        }
+    }
+
+    return max_index;
+}
+
+char most_common_letter(char * cypher) {
+    int* counts = (int*) malloc(LETTER_COUNT * sizeof(int));
+    memset(counts, 0, LETTER_COUNT * sizeof(int));
+    int position = 0;
+    while(cypher[position] != '\0') {
+        int index = tolower(cypher[position]) - 'a';
+        if(index >= 0 && index < LETTER_COUNT) {
+            counts[index]++;
+        }
+        position++;
+    }
+    int max_index = get_max_index(counts);
+
+    return max_index + 'a';
+}
+
+int main() {
+    char filename[MAXN];
+    printf("Enter filename: \n");
+    fgets(filename, sizeof(filename), stdin);
+    filename[strcspn(filename, "\n")] = '\0';
+
+    char option[MAXN];
+    printf("Choose encrypt, write, or analyse: \n");
+    fgets(option, sizeof(option), stdin);
+    option[strcspn(option, "\n")] = '\0';
+
+    if(strcmp(option, "encrypt") == 0) {
+        char* cypher = read_cypher(filename);
+        if(cypher != NULL) {
+            int key;
+            printf("Enter key:");
+            scanf("%d", &key);
+            getchar();
+
+            char* result = caesar_encrypt(cypher, key);
+            printf("%s\n", result);
+            free(result);
+            free(cypher);
+            return EXIT_SUCCESS;
+        }
+        else {
+            return EXIT_FAILURE;
+        }
+    }
+    else if(strcmp(option, "analyse") == 0) {
+        char* cypher = read_cypher(filename);
+        if(cypher != NULL) {
+            char letter = 'e';
+            printf("The common letter is: %c\n", letter);
+            int key = most_common_letter(cypher) - letter;
+            printf("The key is: %d\n", key);
+            char* text = caesar_decrypt(cypher, key);
+            printf("Message: %s\n", text);
+            free(text);
+            free(cypher);
+            printf("------------------------------------\n");
+            return EXIT_SUCCESS;
+        }
+        else {
+            return EXIT_FAILURE;
+        }
+    }
+    else if(strcmp(option, "write") == 0){
+        write_cypher(filename);
+    }
+    
+}

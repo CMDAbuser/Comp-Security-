@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define MAXN 1024
+
+char* vigenereEncrypt(char* plaintext, char* key);
+char* vigenereDecrypt(char* cipher, char* key);
+void encryptFile(char* inputFileName, char* outputFileName, char* key);
+void decryptFile(char* inputFileName, char* outputFileName, char* key);
+void frequencyAnalysis(char* ciphertext);
+void kasiskiMethod(char* ciphertext);
+
+int main() {
+    char inputFileName[MAXN], outputFileName[MAXN], key[MAXN];
+
+    printf("Enter input file name: ");
+    scanf("%s", inputFileName);
+    printf("Enter output file name: ");
+    scanf("%s", outputFileName);
+
+    FILE *inputFile = fopen(inputFileName, "r");
+    if (inputFile == NULL) {
+        printf("ERROR.\n"); 
+        return EXIT_FAILURE;
+    }
+    fclose(inputFile);
+
+    printf("Enter key: ");
+    scanf("%s", key);
+
+    encryptFile(inputFileName, outputFileName, key);
+    decryptFile(outputFileName, "decrypted_message.txt", key);
+    frequencyAnalysis(outputFileName);
+    kasiskiMethod(outputFileName);
+
+    return 0;
+}
+
+char* vigenereEncrypt(char* plaintext, char* key) {
+    int length = strlen(plaintext);
+    int keyLength = strlen(key);
+    char* cipher = (char*) malloc(sizeof(char) * (length + 1));
+    if (cipher == NULL) {
+        printf("ERROR.\n");
+        exit(EXIT_FAILURE);
+    }
+    memset(cipher, '\0', sizeof(char) * (length + 1));
+
+    for (int i = 0; i < length; i++) {
+        if (isalpha(plaintext[i])) {
+            int shift = tolower(key[i % keyLength]) - 'a';
+            if (islower(plaintext[i]))
+                cipher[i] = 'a' + (plaintext[i] - 'a' + shift) % 26;
+            else
+                cipher[i] = 'A' + (plaintext[i] - 'A' + shift) % 26;
+        } else
+            cipher[i] = plaintext[i];
+    }
+    cipher[length] = '\0';
+    return cipher;
+}
+
+char* vigenereDecrypt(char* cipher, char* key) {
+    int length = strlen(cipher);
+    int keyLength = strlen(key);
+    char* plaintext = (char*) malloc(sizeof(char) * (length + 1));
+    if (plaintext == NULL) {
+        printf("ERROR.\n");
+        exit(EXIT_FAILURE);
+    }
+    memset(plaintext, '\0', sizeof(char) * (length + 1));
+
+    for (int i = 0; i < length; i++) {
+        if (isalpha(cipher[i])) {
+            int shift = tolower(key[i % keyLength]) - 'a';
+            if (islower(cipher[i]))
+                plaintext[i] = 'a' + (cipher[i] - 'a' - shift + 26) % 26;
+            else
+                plaintext[i] = 'A' + (cipher[i] - 'A' - shift + 26) % 26;
+        } else
+            plaintext[i] = cipher[i];
+    }
+    plaintext[length] = '\0';
+    return plaintext;
+}
+
+void encryptFile(char* inputFileName, char* outputFileName, char* key) {
+    FILE *inputFile = fopen(inputFileName, "r");
+    FILE *outputFile = fopen(outputFileName, "w");
+
+    if (inputFile == NULL || outputFile == NULL) {
+        printf("Error opening files.\n");
+        return;
+    }
+
+    char plaintext[MAXN];
+    while (fgets(plaintext, MAXN, inputFile) != NULL) {
+        char* cipher = vigenereEncrypt(plaintext, key);
+        fprintf(outputFile, "%s", cipher);
+        free(cipher);
+    }
+
+    fclose(inputFile);
+    fclose(outputFile);
+}
+
+void decryptFile(char* inputFileName, char* outputFileName, char* key) {
+    FILE *inputFile = fopen(inputFileName, "r");
+    FILE *outputFile = fopen(outputFileName, "w");
+
+    if (inputFile == NULL || outputFile == NULL) {
+        printf("Error opening files.\n");
+        return;
+    }
+
+    char cipher[MAXN];
+    while (fgets(cipher, MAXN, inputFile) != NULL) {
+        char* plaintext = vigenereDecrypt(cipher, key);
+        fprintf(outputFile, "%s", plaintext);
+        free(plaintext);
+    }
+
+    fclose(inputFile);
+    fclose(outputFile);
+}
+
+void frequencyAnalysis(char* ciphertext) {
+   
+}
+
+void kasiskiMethod(char* ciphertext) {
+  
+}
